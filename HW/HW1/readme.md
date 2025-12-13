@@ -254,3 +254,131 @@ d.	Настройте каналы виртуального соединения
 4)	Щелкните правой кнопкой мыши интерфейс Ethernet и выберите «Свойства» .
 5)	Выберите Протокол Интернета версии 4 (TCP/IPv4) > Свойства.
 6)	Выберите Использовать следующий IP-адрес и введите IP-адрес и маску подсети  и нажмите ОК.
+
+![](./screen/IPconf.png)
+## Часть 3. Проверка сетевых подключений
+В третьей части лабораторной работы вам предстоит проверить и задокументировать конфигурацию коммутатора, протестировать сквозное соединение между компьютером PC-A и коммутатором S1, а также протестировать возможность удаленного управления коммутатором.
+### Шаг 1. Отобразите конфигурацию коммутатора.
+            S1#show running-config 
+            Building configuration...
+            
+            Current configuration : 1350 bytes
+            !
+            version 15.0
+            no service timestamps log datetime msec
+            no service timestamps debug datetime msec
+            service password-encryption
+            !
+            hostname S1
+            !
+            enable secret 5 $1$mERr$9cTjUIEqNGurQiFU.ZeCi1
+            !
+            !
+            !
+            no ip domain-lookup
+            !
+            !
+            !
+            spanning-tree mode pvst
+            spanning-tree extend system-id
+            !
+            interface FastEthernet0/1
+            !
+            interface FastEthernet0/2
+            !
+            interface FastEthernet0/3
+            !
+            interface FastEthernet0/4
+            !
+            interface FastEthernet0/5
+            !
+            interface FastEthernet0/6
+            !
+            interface FastEthernet0/7
+            !
+            interface FastEthernet0/8
+            !
+            interface FastEthernet0/9
+            !
+            interface FastEthernet0/10
+            !
+            interface FastEthernet0/11
+            !
+            interface FastEthernet0/12
+            !
+            interface FastEthernet0/13
+            !
+            interface FastEthernet0/14
+            !
+            interface FastEthernet0/15
+            !
+            interface FastEthernet0/16
+            !
+            interface FastEthernet0/17
+            !
+            interface FastEthernet0/18
+            !
+            interface FastEthernet0/19
+            !
+            interface FastEthernet0/20
+            !
+            interface FastEthernet0/21
+            !
+            interface FastEthernet0/22
+            !
+            interface FastEthernet0/23
+            !
+            interface FastEthernet0/24
+            !
+            interface GigabitEthernet0/1
+            !
+            interface GigabitEthernet0/2
+            !
+            interface Vlan1
+             ip address 192.168.1.2 255.255.255.0
+            !
+            banner motd ^C
+            Unauthorized access is strictly prohibited. ^C
+            !
+            !
+            !
+            line con 0
+             password 7 0822455D0A16
+             logging synchronous
+             login
+            !
+            line vty 0 4
+             password 7 0822455D0A16
+             login
+             transport input telnet
+            line vty 5 15
+             login
+            !
+            !
+            !
+            !
+            end
+b.	Проверьте параметры VLAN 1.
+S1# show interface vlan 1 
+#### Вопрос <br>
+Какова полоса пропускания этого интерфейса?<br>
+#### Ответ <br>
+100 Мбит/с<br>
+
+###Шаг 2. Протестируйте сквозное соединение, отправив эхо-запрос.
+a.	В командной строке компьютера PC-A с помощью утилиты ping проверьте связь сначала с адресом PC-A.<br>
+C:\> ping 192.168.1.10 <br>
+b.	Из командной строки компьютера PC-A отправьте эхо-запрос на административный адрес интерфейса SVI коммутатора S1.<br>
+C:\> ping 192.168.1.2<br>
+Поскольку компьютеру PC-A нужно преобразовать МАС-адрес коммутатора S1 с помощью ARP, время ожидания передачи первого пакета может истечь. Если эхо-запрос не удается, найдите и устраните неполадки базовых настроек устройства. Проверьте как физические кабели, так и логическую адресацию.
+
+![](./screen/Ping.png)
+
+### Шаг 3. Проверьте удаленное управление коммутатором S1.
+После этого используйте удаленный доступ к устройству с помощью Telnet. В этой лабораторной работе устройства PC-A и S1 расположены рядом. В производственной сети коммутатор может находиться в коммутационном шкафу на последнем этаже, в то время как административный компьютер находится на первом этаже. На данном этапе вам предстоит использовать Telnet для удаленного доступа к коммутатору S1 через его административный адрес SVI. Telnet — это не безопасный протокол, но вы можете использовать его для проверки удаленного доступа. В случае с Telnet вся информация, включая пароли и команды, отправляется через сеанс в незашифрованном виде. В последующих лабораторных работах вы будете использовать протокол SSH для удаленного доступа к сетевым устройствам.<br>
+a.	Откройте Tera Term или другую программу эмуляции терминала с возможностью Telnet. <br>
+b.	Выберите сервер Telnet и укажите адрес управления SVI для подключения к S1.  Пароль: cisco.<br>
+c.	После ввода пароля cisco вы окажетесь в командной строке пользовательского режима. Для перехода в исполнительский режим EXEC введите команду enable и используйте секретный пароль class.<br>
+d.	Сохраните конфигурацию.<br>
+e.	Чтобы завершить сеанс Telnet, введите exit.<br>
+![](./screen/TelnetConnectWithPass.png)
