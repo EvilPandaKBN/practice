@@ -264,3 +264,83 @@ c.	Используйте выбранную команду, чтобы убед
         unassigned
     Vlan1                      [administratively down/down]
         unassigned
+#### Вопрос <br>
+Какие группы многоадресной рассылки назначены интерфейсу G0/0?<br>
+#### Ответ <br>
+    FF02::1
+    FF02::1:FF00:1
+### Шаг 2. Активируйте IPv6-маршрутизацию на R1.
+a.	В командной строке на PC-B введите команду ipconfig, чтобы получить данные IPv6-адреса, назначенного интерфейсу ПК.
+#### Вопрос <br>
+Назначен ли индивидуальный IPv6-адрес сетевой интерфейсной карте (NIC) на PC-B?
+#### Ответ <br>
+    C:\>ipconfig
+    
+    FastEthernet0 Connection:(default port)
+    
+       Connection-specific DNS Suffix..: 
+       Link-local IPv6 Address.........: FE80::20A:41FF:FE55:40B4
+       IPv6 Address....................: ::
+       IPv4 Address....................: 0.0.0.0
+       Subnet Mask.....................: 0.0.0.0
+       Default Gateway.................: ::
+                                         0.0.0.0
+b.	Активируйте IPv6-маршрутизацию на R1 с помощью команды IPv6 unicast-routing. <br>
+c.	Теперь, когда R1 входит в группу многоадресной рассылки всех маршрутизаторов, еще раз введите команду ipconfig на PC-B. Проверьте данные IPv6-адреса.
+#### Вопрос <br>
+Почему PC-B получил глобальный префикс маршрутизации и идентификатор подсети, которые вы настроили на R1?
+#### Ответ <br>
+PC-B получил этот глобальный префикс и идентификатор подсети, потому что R1 рассылает их в Router Advertisement (RA) сообщениях протокола ICMPv6
+### Шаг 3. Назначьте IPv6-адреса интерфейсу управления (SVI) на S1.
+a.	Назначьте адрес IPv6 для S1. Также назначьте этому интерфейсу локальный адрес канала fe80::b.
+Проверьте правильность назначения IPv6-адресов интерфейсу управления с помощью команды show ipv6 interface vlan1.
+
+    S1#show ipv6 interface vlan 1
+    Vlan1 is up, line protocol is up
+    IPv6 is enabled, link-local address is FE80::202:17FF:FEAB:2BAA
+    No Virtual link-local address(es):
+    Global unicast address(es):
+    2001:DB8:ACAD:1::B, subnet is 2001:DB8:ACAD:1::/64
+    Joined group address(es):
+    FF02::1
+    FF02::1:FF00:B
+    FF02::1:FFAB:2BAA
+    MTU is 1500 bytes
+    ICMP error messages limited to one every 100 milliseconds
+    ICMP redirects are enabled
+    ICMP unreachables are sent
+    Output features: Check hwidb
+    ND DAD is enabled, number of DAD attempts: 1
+### Шаг 4. Назначьте компьютерам статические IPv6-адреса.
+a.	Откройте окно Свойства Ethernet для каждого ПК и назначьте адресацию IPv6.<br>
+Убедитесь, что оба компьютера имеют правильную информацию адреса IPv6<br>
+Примечание. При выполнении работы в среде Cisco Packet Tracer установите статический и SLACC адреса на компьютеры последовательно, отразив результаты в отчете<br>
+![PC-A.png](https://github.com/EvilPandaKBN/practice/blob/main/HW/HW4/screen/pc-a.png)
+![PC-A.png](https://github.com/EvilPandaKBN/practice/blob/main/HW/HW4/screen/pc-a1.png)
+![PC-B.png](https://github.com/EvilPandaKBN/practice/blob/main/HW/HW4/screen/pc-b.png)
+![PC-B.png](https://github.com/EvilPandaKBN/practice/blob/main/HW/HW4/screen/pc-b1.png)
+## Часть 3. Проверка сквозного подключения
+С PC-A отправьте эхо-запрос на FE80::1. Это локальный адрес канала, назначенный G0/1 на R1.<br>
+![ping_PC-A_S1](https://github.com/EvilPandaKBN/practice/blob/main/HW/HW4/screen/ping_PC-A_S1.png)
+
+Отправьте эхо-запрос на интерфейс управления S1 с PC-A.
+![ping_PC-A_S1](https://github.com/EvilPandaKBN/practice/blob/main/HW/HW4/screen/ping_PC-A_S11.png)
+
+Введите команду tracert на PC-A, чтобы проверить наличие сквозного подключения к PC-B.
+![ping_PC-A_S1](https://github.com/EvilPandaKBN/practice/blob/main/HW/HW4/screen/tracert_PC-A_PC-B.png)
+
+С PC-B отправьте эхо-запрос на PC-A.
+![ping_PC-A_S1](https://github.com/EvilPandaKBN/practice/blob/main/HW/HW4/screen/ping_PC-B_PC-A.png)
+
+С PC-B отправьте эхо-запрос на локальный адрес канала G0/0 на R1.
+![ping_PC-A_S1](https://github.com/EvilPandaKBN/practice/blob/main/HW/HW4/screen/ping_PC-B_G0.png)
+
+### Вопросы для повторения
+#### Вопрос <br>
+1.	Почему обоим интерфейсам Ethernet на R1 можно назначить один и тот же локальный адрес канала — FE80::1?
+#### Ответ <br>
+Каждый интерфейс маршрутизатора относится к отдельной сети. Пакеты с локальным адресом канала никогда не выходят за пределы локальной сети, а значит, для обоих интерфейсов можно указывать один и тот же локальный адрес канала.
+#### Вопрос <br>
+2.	Какой идентификатор подсети в индивидуальном IPv6-адресе 2001:db8:acad::aaaa:1234/64?
+#### Ответ <br>
+2001:db8:acad:0000
