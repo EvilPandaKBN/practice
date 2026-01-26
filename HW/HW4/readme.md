@@ -330,6 +330,7 @@ a.	Откройте окно Свойства Ethernet для каждого П�
 ![ping_PC-A_S1](https://github.com/EvilPandaKBN/practice/blob/main/HW/HW4/screen/tracert_PC-A_PC-B.png)
 
 С PC-B отправьте эхо-запрос на PC-A.
+
 ![ping_PC-A_S1](https://github.com/EvilPandaKBN/practice/blob/main/HW/HW4/screen/ping_PC-B_PC-A.png)
 
 С PC-B отправьте эхо-запрос на локальный адрес канала G0/0 на R1.
