@@ -453,3 +453,179 @@ a.	На S1, введите команду show port-security interface f0/6  д�
 |Aging Type|Absolute|
 |Secure Static Address Aging|Disabled|
 |Sticky MAC Address|0|
+b.	На S1 включите защиту порта на F0 / 6 со следующими настройками:<br>
+o	Максимальное количество записей MAC-адресов: 3<br>
+o	Режим безопасности: restrict<br>
+o	Aging time: 60 мин.<br>
+o	Aging type: неактивный<br>
+c.	Verify port security on S1 F0/6.
+
+    S1#show port-security interface f0/6
+    Port Security              : Enabled
+    Port Status                : Secure-up
+    Violation Mode             : Restrict
+    Aging Time                 : 60 mins
+    Aging Type                 : Absolute
+    SecureStatic Address Aging : Disabled
+    Maximum MAC Addresses      : 3
+    Total MAC Addresses        : 0
+    Configured MAC Addresses   : 0
+    Sticky MAC Addresses       : 0
+    Last Source Address:Vlan   : 0000.0000.0000:0
+    Security Violation Count   : 0
+    
+    S1#show port-security address 
+    Secure Mac Address Table
+    -----------------------------------------------------------------------------
+    Vlan Mac Address Type Ports Remaining Age
+    (mins)
+    ---- ----------- ---- ----- -------------
+    10 00E0.F7A8.C77A DynamicConfigured FastEthernet0/6 -
+    -----------------------------------------------------------------------------
+    Total Addresses in System (excluding one mac per port) : 0
+    Max Addresses limit in System (excluding one mac per port) : 1024
+
+Не удалось установить Aging Type, на данной модели коммутатора нет такой команды
+
+        S1(config-if)#switchport port-security aging ?
+        time Port-security aging time
+        S1(config-if)#switchport port-security aging
+
+
+
+Включите безопасность порта для F0 / 18 на S2. Настройте каждый активный порт доступа таким образом, чтобы он автоматически добавлял адреса МАС, изученные на этом порту, в текущую конфигурацию.
+d.	Настройте следующие параметры безопасности порта на S2 F / 18:<br>
+o	Максимальное количество записей MAC-адресов: 2<br>
+o	Тип безопасности: Protect<br>
+o	Aging time: 60 мин.<br>
+e.	Проверка функции безопасности портов на S2 F0/18.
+
+        S2#show port-security interface f0/18
+        Port Security              : Enabled
+        Port Status                : Secure-up
+        Violation Mode             : Protect
+        Aging Time                 : 60 mins
+        Aging Type                 : Absolute
+        SecureStatic Address Aging : Disabled
+        Maximum MAC Addresses      : 2
+        Total MAC Addresses        : 0
+        Configured MAC Addresses   : 0
+        Sticky MAC Addresses       : 0
+        Last Source Address:Vlan   : 0000.0000.0000:0
+        Security Violation Count   : 0
+        
+### Шаг 5. Реализовать безопасность DHCP snooping.
+a.	На S2 включите DHCP snooping и настройте DHCP snooping во VLAN 10.<br>
+b.	Настройте магистральные порты на S2 как доверенные порты.<br>
+c.	Ограничьте ненадежный порт Fa0/18 на S2 пятью DHCP-пакетами в секунду.<br>
+d.	Проверка DHCP Snooping на S2.<br>
+
+        S2(config)#do show ip dhcp snooping
+        Switch DHCP snooping is enabled
+        DHCP snooping is configured on following VLANs:
+        10
+        Insertion of option 82 is enabled
+        Option 82 on untrusted port is not allowed
+        Verification of hwaddr field is enabled
+        Interface                  Trusted    Rate limit (pps)
+        -----------------------    -------    ----------------
+        FastEthernet0/1            yes        unlimited       
+        FastEthernet0/18           no         5     
+e.	В командной строке на PC-B освободите, а затем обновите IP-адрес.
+      
+        C:\Users\Student> ipconfig /release
+        C:\Users\Student> ipconfig /renew
+f.	Проверьте привязку отслеживания DHCP с помощью команды show ip dhcp snooping binding.
+            
+            S2(config)#do show ip dhcp snooping binding
+            MacAddress IpAddress Lease(sec) Type VLAN Interface
+            ------------------ --------------- ---------- ------------- ---- -----------------
+            00:60:5C:57:47:DD 192.168.10.11 0 dhcp-snooping 10 FastEthernet0/18
+
+### Шаг 6. Реализация PortFast и BPDU Guard
+a.	Настройте PortFast на всех портах доступа, которые используются на обоих коммутаторах.<br>
+b.	Включите защиту BPDU на портах доступа VLAN 10 S1 и S2, подключенных к PC-A и PC-B.<br>
+c.	Убедитесь, что защита BPDU и PortFast включены на соответствующих портах.<br>
+
+S1#show spanning-tree interface f0/6 detail
+
+
+
+        Port 6 (FastEthernet0/6) of VLAN0010 is designated forwarding
+        Port path cost 19, Port priority 128, Port Identifier 128.6
+        Designated root has priority 32778, address 0001.C951.9722
+        Designated bridge has priority 32778, address 0003.E474.5577
+        Designated port id is 128.6, designated path cost 19
+        Timers: message age 16, forward delay 0, hold 0
+        Number of transitions to forwarding state: 1
+        The port is in the portfast mode
+        Link type is point-to-point by default
+        !
+        interface FastEthernet0/6
+        description to pc-a
+        switchport access vlan 10
+        switchport mode access
+        switchport port-security
+        switchport port-security maximum 3
+        switchport port-security violation restrict 
+        switchport port-security aging time 60
+        spanning-tree portfast
+        spanning-tree bpduguard enable
+        !
+Шаг 7. Проверьте наличие сквозного подключения.
+Проверьте PING свзяь между всеми устройствами в таблице IP-адресации. В случае сбоя проверки связи может потребоваться отключить брандмауэр на хостах.<br>
+PC-A-R1
+![](https://github.com/EvilPandaKBN/practice/blob/main/HW/HW9/screen/PC-A-R1.png)
+PC-A-S1
+![](https://github.com/EvilPandaKBN/practice/blob/main/HW/HW9/screen/PC-A-S1.png)
+PC-A-S2
+![](https://github.com/EvilPandaKBN/practice/blob/main/HW/HW9/screen/PC-A-S2.png)
+PC-A-PC-B
+![](https://github.com/EvilPandaKBN/practice/blob/main/HW/HW9/screen/PC-A-PC-B.png)
+PC-B-R1
+![](https://github.com/EvilPandaKBN/practice/blob/main/HW/HW9/screen/PC-B-R1.png)
+PC-B-S1
+![](https://github.com/EvilPandaKBN/practice/blob/main/HW/HW9/screen/PC-B-S1.png)
+PC-B-S2
+![](https://github.com/EvilPandaKBN/practice/blob/main/HW/HW9/screen/PC-B-S2.png)
+S1-R1
+
+        S1#ping 192.168.10.1
+        
+        Type escape sequence to abort.
+        Sending 5, 100-byte ICMP Echos to 192.168.10.1, timeout is 2 seconds:
+        .!!!!
+        Success rate is 80 percent (4/5), round-trip min/avg/max = 0/0/0 ms
+S1-S2
+
+        S1#ping 192.168.10.202
+        Type escape sequence to abort.
+        Sending 5, 100-byte ICMP Echos to 192.168.10.202, timeout is 2 seconds:
+        ..!!!
+        Success rate is 60 percent (3/5), round-trip min/avg/max = 0/0/0 ms
+S2-R1
+
+S2#ping 192.168.10.1
+
+        Type escape sequence to abort.
+        Sending 5, 100-byte ICMP Echos to 192.168.10.1, timeout is 2 seconds:
+        .!!!!
+        Success rate is 80 percent (4/5), round-trip min/avg/max = 0/0/2 ms
+#### Вопрос <br>
+С точки зрения безопасности порта на S2, почему нет значения таймера для оставшегося возраста в минутах,
+когда было сконфигурировано динамическое обучение - sticky?
+#### Ответ <br>
+В этом суть sticky, что изученный адрес остается в текущей конфигурации, и при записи в стартовую
+остаётся там, как статический, а таймер возраста не применяется к статическим
+#### Вопрос <br>
+Что касается безопасности порта на S2, если вы загружаете скрипт текущей конфигурации на S2, почему порту
+18 на PC-B никогда не получит IP-адрес через DHCP?
+#### Ответ <br>
+При загрузке скрипта уже пррописан mac  устройства (из той схемы на которой создавался скрипт), а режим
+Protect будет отбрасывать пакеты он неизвестных адресов
+#### Вопрос <br>
+Что касается безопасности порта, в чем разница между типом абсолютного устаревания и типом устаревание по
+неактивности?
+#### Ответ <br>
+В устаревании абсолютном мак адрес удаляется спустя определенное время после первого изучения, и если устройство активно, то коммутатору придется изучить его адрес повторно. А при устаревании по активности таймер начнет отсчитывать время, после того, как устройство перестанет проявлять активность (если устройство будет активно постоянно, его адрес не будет удален)
+
