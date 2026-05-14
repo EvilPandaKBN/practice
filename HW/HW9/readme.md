@@ -605,7 +605,7 @@ S1-S2
         Success rate is 60 percent (3/5), round-trip min/avg/max = 0/0/0 ms
 S2-R1
 
-S2#ping 192.168.10.1
+        S2#ping 192.168.10.1
 
         Type escape sequence to abort.
         Sending 5, 100-byte ICMP Echos to 192.168.10.1, timeout is 2 seconds:
